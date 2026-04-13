@@ -7,8 +7,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-SCRIPT_NAME="dmitbox.sh"
-AD_TEXT="欢迎加入DMIT交流群 https://t.me/DmitChat"
+SCRIPT_NAME="init.sh"
+AD_TEXT=""
 
 # managed files
 TUNE_SYSCTL_FILE="/etc/sysctl.d/99-dmit-tcp-tune.conf"
@@ -278,14 +278,12 @@ dns_resolve_ok() {
 # ---------------- banner ----------------
 banner() {
   soft_clear
-  echo -e "${c_bold}${c_white}DMIT 工具箱${c_reset}  ${c_dim}(${SCRIPT_NAME})${c_reset}"
-  echo -e "${c_green}${AD_TEXT}${c_reset}"
+  echo -e "${c_bold}${c_white}全栖开荒工具箱${c_reset}  ${c_dim}(${SCRIPT_NAME})${c_reset}"
   echo -e "${c_dim}----------------------------------------------${c_reset}"
 }
 
 sub_banner() {
   echo -e "${c_dim}----------------------------------------------${c_reset}"
-  echo -e "${c_green}${AD_TEXT}${c_reset}"
   echo -e "${c_dim}----------------------------------------------${c_reset}"
 }
 
@@ -1077,7 +1075,6 @@ health_check_core() {
   dns_resolve_ok && dns_ok="YES"
 
   echo -e "${c_bold}${c_white}网络体检${c_reset}  ${c_dim}(接口: $ifc)${c_reset}"
-  echo -e "${c_green}${AD_TEXT}${c_reset}"
   echo -e "${c_dim}----------------------------------------------${c_reset}"
 
   print_kv "IPv4 出网"       "$( [[ "$v4_net" == "YES" ]] && echo -e "${c_green}正常${c_reset}" || echo -e "${c_yellow}异常${c_reset}" )"
