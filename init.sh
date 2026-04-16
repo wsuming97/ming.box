@@ -1,16 +1,17 @@
-#!/bin/bash
+﻿#!/bin/bash
 # ============================================================
-# 终极全栖开荒自拓脚本 (VPS Init + DMIT Box)
+# Ming.Box — 终极全栖开荒与深度调优系统
+# 模块化版本 · 由 build.sh 自动拼接为单文件发布
 # ============================================================
 
-# ---------- [DMIT 模块开始] ----------
+# ---------- 严格模式 ----------
 set -euo pipefail
 IFS=$'\n\t'
 
 SCRIPT_NAME="init.sh"
 AD_TEXT=""
 
-# managed files
+# ---------- 全局路径 ----------
 TUNE_SYSCTL_FILE="/etc/sysctl.d/99-dmit-tcp-tune.conf"
 DMIT_TCP_DEFAULT_FILE="/etc/sysctl.d/99-dmit-tcp-dmitdefault.conf"
 IPV6_SYSCTL_FILE="/etc/sysctl.d/99-dmit-ipv6.conf"
@@ -18,23 +19,18 @@ IPV6_FIX_SYSCTL_FILE="/etc/sysctl.d/99-dmit-ipv6-fix.conf"
 GAI_CONF="/etc/gai.conf"
 BACKUP_BASE="/root/dmit-backup"
 
-# MTU persistent via systemd
 MTU_SERVICE="/etc/systemd/system/dmit-mtu.service"
 MTU_VALUE_FILE="/etc/dmit-mtu.conf"
 
-# DNS backup
 RESOLV_BACKUP="${BACKUP_BASE}/resolv.conf.orig"
 
-# SSH backup & drop-in
 SSH_ORIG_TGZ="${BACKUP_BASE}/ssh-orig.tgz"
 SSH_DROPIN_DIR="/etc/ssh/sshd_config.d"
 SSH_DROPIN_FILE="${SSH_DROPIN_DIR}/99-dmitbox.conf"
 
-# cloud-init safety (avoid losing SSH after enabling cloud-init on non-cloud images)
 CLOUDINIT_DISABLE_NET_FILE="/etc/cloud/cloud.cfg.d/99-dmitbox-disable-network-config.cfg"
 CLOUDINIT_DISABLE_PKG_FILE="/etc/cloud/cloud.cfg.d/99-dmitbox-disable-apt.cfg"
 
-# cloud-init / ip-change (DMIT default-like)
 DMITBOX_PVE_CFG="/etc/cloud/cloud.cfg.d/99_dmitbox_pve.cfg"
 DMITBOX_SEED_SCRIPT="/usr/local/sbin/dmitbox-cloud-seed.sh"
 DMITBOX_SEED_SERVICE="/etc/systemd/system/dmitbox-cloud-seed.service"
@@ -43,18 +39,16 @@ DMITBOX_NET_ROLLBACK_SERVICE="/etc/systemd/system/dmitbox-net-rollback.service"
 DMITBOX_IPCHANGE_BACKUP_POINTER="/etc/dmitbox-ipchange-backup.path"
 DMITBOX_IPCHANGE_BACKUP_MARKER="${DMITBOX_IPCHANGE_BACKUP_MARKER:-$DMITBOX_IPCHANGE_BACKUP_POINTER}"
 
-# IPv6 pool + persist
 IPV6_POOL_CONF="/etc/dmit-ipv6-pool.conf"
 IPV6_POOL_SERVICE="/etc/systemd/system/dmit-ipv6-pool.service"
 
-# IPv6 random outbound (nftables NAT66)
 IPV6_RAND_CONF="/etc/dmit-ipv6-rand.conf"
 IPV6_RAND_NFT="/etc/nftables.d/dmitbox-ipv6-rand.nft"
 IPV6_RAND_SERVICE="/etc/systemd/system/dmit-ipv6-rand.service"
 
 RUN_MODE="${RUN_MODE:-menu}" # menu | cli
 
-# colors (no red)
+# ---------- 统一颜色定义（DMIT + VPS 共用）----------
 c_reset="\033[0m"
 c_dim="\033[2m"
 c_bold="\033[1m"
@@ -62,6 +56,21 @@ c_green="\033[32m"
 c_yellow="\033[33m"
 c_cyan="\033[36m"
 c_white="\033[37m"
+c_red="\033[0;31m"
+c_blue="\033[0;34m"
+
+# VPS 模块兼容别名（不再在 VPS 模块重复定义）
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+CYAN="\033[0;36m"
+BLUE="\033[0;34m"
+NC="\033[0m"
+BOLD="\033[1m"
+
+# ══════════════════════════════════════════════════════════
+# 模块: 01_helpers.sh
+# ══════════════════════════════════════════════════════════
 
 ok()   { echo -e "${c_green}✔${c_reset} $*"; }
 info() { echo -e "${c_cyan}➜${c_reset} $*"; }
@@ -237,6 +246,10 @@ pkg_install() {
   warn "未识别包管理器：请手动安装 ${pkgs[*]}"
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 02_network_core.sh
+# ══════════════════════════════════════════════════════════
+
 # ---------------- helpers ----------------
 default_iface() {
   local ifc=""
@@ -328,7 +341,11 @@ env_snapshot() {
 
   ok "已保存：${bdir}"
   echo "查看：less -S ${bdir}/state.txt"
-}
+
+# ══════════════════════════════════════════════════════════
+# 模块: 03_network_ipv6_dns.sh
+# ══════════════════════════════════════════════════════════
+
 
 # ---------------- 时区：中国 ----------------
 set_timezone_china() {
@@ -663,6 +680,11 @@ restore_gai_default() {
   fi
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 04_tcp_bbr.sh
+# ══════════════════════════════════════════════════════════
+
+
 bbr_check() {
   echo "================ BBR 检测 ================"
   echo "kernel=$(uname -r)"
@@ -819,6 +841,11 @@ if [[ "$rb" == "y" || "$rb" == "Y" ]]; then
     info "稍后手动重启：reboot"
   fi
 }
+
+# ══════════════════════════════════════════════════════════
+# 模块: 05_mtu_dns.sh
+# ══════════════════════════════════════════════════════════
+
 
 # ---------------- DNS 切换/恢复 ----------------
 dns_backup_once() {
@@ -1061,6 +1088,11 @@ mtu_dmit_menu() {
   done
 }
 
+
+# ══════════════════════════════════════════════════════════
+# 模块: 06_health_check.sh
+# ══════════════════════════════════════════════════════════
+
 print_kv() { printf "%-20s %s\n" "$1" "$2"; }
 
 health_check_core() {
@@ -1121,6 +1153,11 @@ health_check_autofix() {
   health_check_core
   [[ "$fixed" -eq 1 ]] && ok "已执行自动修复动作" || ok "无需修复"
 }
+
+# ══════════════════════════════════════════════════════════
+# 模块: 07_ipv6_pool.sh
+# ══════════════════════════════════════════════════════════
+
 
 ipv6_prefix64_guess() {
   local ifc="${1:-$(default_iface)}"
@@ -1315,6 +1352,11 @@ ipv6_pool_status() {
     echo -e "${c_dim}池配置：${c_reset} (未启用)"
   fi
 }
+
+# ══════════════════════════════════════════════════════════
+# 模块: 08_ipv6_rand.sh
+# ══════════════════════════════════════════════════════════
+
 
 ipv6_rand_write_conf() {
   local ifc="$1" prefix64="$2" n="$3"
@@ -1639,6 +1681,11 @@ ipv6_tools_dmit_menu() {
     esac
   done
 }
+
+# ══════════════════════════════════════════════════════════
+# 模块: 09_cloud_init.sh
+# ══════════════════════════════════════════════════════════
+
 
 cloudinit_qga_detect_static_network() {
   # Return 0 if static networking is detected (higher risk cloud-init overrides),
@@ -2244,6 +2291,11 @@ cloudinit_qga_dmit_menu() {
   done
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 10_ssh_security.sh
+# ══════════════════════════════════════════════════════════
+
+
 # ======================================================================
 ssh_pkg_install() {
   if have_cmd apk; then
@@ -2732,6 +2784,11 @@ ssh_dmit_menu() {
   done
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 11_tests.sh
+# ══════════════════════════════════════════════════════════
+
+
 run_remote_script() {
   local title="$1"
   local cmd="$2"
@@ -2784,6 +2841,11 @@ tests_dmit_menu() {
     esac
   done
 }
+
+# ══════════════════════════════════════════════════════════
+# 模块: 12_dd_reinstall.sh
+# ══════════════════════════════════════════════════════════
+
 
 dd_reinstall() {
   warn "一键 DD 重装系统：会清空系统盘数据，风险极高！"
@@ -2881,6 +2943,11 @@ dd_reinstall() {
   bash /tmp/InstallNET.sh "${flag}" "${ver}" -port "${port}" -pwd "${pwd}" || true
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 13_restore.sh
+# ══════════════════════════════════════════════════════════
+
+
 restore_all() {
   local ifc; ifc="$(default_iface)"
   info "一键还原：撤销本脚本改动（DNS/MTU/IPv6/TCP/优先级/SSH/IPv6池/随机出网）"
@@ -2935,6 +3002,12 @@ restore_all() {
 
   ok "已还原（建议再跑一次“网络体检”确认状态）"
 }
+
+
+# ══════════════════════════════════════════════════════════
+# 模块: 14_dmit_menu.sh
+# ══════════════════════════════════════════════════════════
+
 
 dmit_menu() {
   RUN_MODE="menu"
@@ -3020,49 +3093,48 @@ dmit_main() {
   menu
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 20_vps_modules.sh
+# ══════════════════════════════════════════════════════════
 
-
-# ---------- [原置 VPS-INIT 模块开始] ----------
 # ============================================================
-# VPS 新机一键初始化脚本 (纯净极智版)
+# VPS 新机一键初始化模块（纯净极智版）
 # 作者定制：基于用户需求提纯的核心服务器配置脚本
 # ============================================================
 
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-YELLOW="\033[1;33m"
-CYAN="\033[0;36m"
-BLUE="\033[0;34m"
-NC="\033[0m"
-BOLD="\033[1m"
-
+# 分隔线工具函数
 line() { echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"; }
-ok() { echo -e "${GREEN}>>> [OK] $1${NC}"; }
-info() { echo -e "${CYAN}>>> [INFO] $1${NC}"; }
-error() { echo -e "${RED}>>> [ERROR] $1${NC}"; exit 1; }
+
+# VPS 模块专用输出（前缀 >>> 风格，与 DMIT 模块的 ✔/➜/⚠ 风格区分）
+vps_ok()    { echo -e "${GREEN}>>> [OK] $1${NC}"; }
+vps_info()  { echo -e "${CYAN}>>> [INFO] $1${NC}"; }
+vps_error() { echo -e "${RED}>>> [ERROR] $1${NC}"; exit 1; }
 
 # [核心鉴权]
-[ "$(id -u)" -ne 0 ] && error "操作敏感，请务必使用超级系统权限(root用户)运行此脚本！"
+[ "$(id -u)" -ne 0 ] && vps_error "操作敏感，请务必使用超级系统权限(root用户)运行此脚本！"
 
 # === 模块 1：更新与软件 ===
+# 【优化】增加 DEBIAN_FRONTEND=noninteractive 和 --force-confold，防止 dpkg 弹窗卡住脚本
 func_update() {
-    info "正在高速更新底层系统包目录，并安装必备基础软件..."
-    apt update -y && apt upgrade -y
+    vps_info "正在高速更新底层系统包目录，并安装必备基础软件..."
+    export DEBIAN_FRONTEND=noninteractive
+    apt update -y && apt upgrade -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
     apt install -y sudo curl wget nano procps
-    ok "所有系统补丁拉取完成！必备软件(curl/wget/nano/sudo)均已存在于系统中。"
+    vps_ok "所有系统补丁拉取完成！必备软件(curl/wget/nano/sudo)均已存在于系统中。"
 }
 
 # === 模块 2：时区校正 ===
 func_timezone() {
-    info "正在校正系统主板时钟，并设置时区为亚洲/上海..."
+    vps_info "正在校正系统主板时钟，并设置时区为亚洲/上海..."
     timedatectl set-timezone Asia/Shanghai
-    ok "操作成功！当前机器时间已被校准为：$(date '+%Y-%m-%d %H:%M:%S')"
+    vps_ok "操作成功！当前机器时间已被校准为：$(date '+%Y-%m-%d %H:%M:%S')"
 }
 
 # === 模块 3：交互式 SWAP ===
+# 【优化】dd 增加 status=progress 进度提示
 func_swap() {
     echo ""
-    info "正在启动交互式 SWAP 磁盘虚拟内存管理程序..."
+    vps_info "正在启动交互式 SWAP 磁盘虚拟内存管理程序..."
     echo "【系统当前内存余量扫描】"
     free -h
     echo ""
@@ -3073,11 +3145,10 @@ func_swap() {
 
     if [ "$swap_choice" == "1" ]; then
         read -p "=> 请输入你要割让多少 MB 的硬盘做缓冲池？ (常用推荐: 1024 或者 2048): " swap_mb
-        # 正则判断纯文字输入防止破坏
         if [[ ! "$swap_mb" =~ ^[0-9]+$ ]]; then
-            error "系统无法识别！请输入纯粹的数字（例如 2048）。操作终止。"
+            vps_error "系统无法识别！请输入纯粹的数字（例如 2048）。操作终止。"
         fi
-        info "正在将 ${swap_mb}MB 物理硬盘转化配置为 SWAP 虚拟池..."
+        vps_info "正在将 ${swap_mb}MB 物理硬盘转化配置为 SWAP 虚拟池..."
 
         # 先清除掉机器可能残留的历史配置
         if grep -q "/swapfile" /etc/fstab || [ -f /swapfile ]; then
@@ -3086,35 +3157,41 @@ func_swap() {
             rm -f /swapfile
         fi
 
-        # 创建零填充文件 (使用 dd 创建并挂载)
-        dd if=/dev/zero of=/swapfile bs=1M count=$swap_mb status=none
+        # 创建零填充文件（status=progress 显示进度）
+        dd if=/dev/zero of=/swapfile bs=1M count=$swap_mb status=progress
         chmod 600 /swapfile
         mkswap /swapfile > /dev/null 2>&1
         swapon /swapfile
         echo '/swapfile none swap sw 0 0' >> /etc/fstab
-        ok "挂载顺利完成！请检阅上方最终成果："
+        vps_ok "挂载顺利完成！请检阅上方最终成果："
         free -m | grep -i swap
 
     elif [ "$swap_choice" == "2" ]; then
-        info "正在安全抽离配置表，并彻底释放出 SWAP 占用的硬盘空间..."
-        # 多层校验删除
+        vps_info "正在安全抽离配置表，并彻底释放出 SWAP 占用的硬盘空间..."
         swapoff -a >/dev/null 2>&1
         sed -i '/swap/d' /etc/fstab
         rm -f /swapfile
-        ok "剔除干净得就像刚买来一样！系统配置表(fstab)和残留(/swapfile)均已灰飞烟灭。"
+        vps_ok "剔除干净得就像刚买来一样！系统配置表(fstab)和残留(/swapfile)均已灰飞烟灭。"
     else
-        info "已跳过虚拟内存规划。"
+        vps_info "已跳过虚拟内存规划。"
     fi
 }
 
 # === 模块 4：Fail2ban ===
+# 【优化】动态读取当前 SSH 端口，不再硬编码 55520
 func_fail2ban() {
-    info "正在下载防暴系统中心 fail2ban..."
+    vps_info "正在下载防暴系统中心 fail2ban..."
+    export DEBIAN_FRONTEND=noninteractive
     apt install -y fail2ban
-    info "正在将定制防护伞机制写入 /etc/fail2ban/jail.local..."
-    
-    # 按照需求定死防破封策略 (1次连续封印1天，可错3次)
-    cat << EOF > /etc/fail2ban/jail.local
+
+    # 动态获取当前 SSH 端口（兼容未改端口和已改端口的情况）
+    local ssh_port
+    ssh_port=$(grep -E '^[[:space:]]*Port[[:space:]]' /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' | head -1)
+    ssh_port="${ssh_port:-22}"
+
+    vps_info "正在将定制防护伞机制写入 /etc/fail2ban/jail.local（监控端口: ${ssh_port}）..."
+
+    cat <<EOF > /etc/fail2ban/jail.local
 [DEFAULT]
 ignoreip = 127.0.0.1
 allowipv6 = auto
@@ -3123,9 +3200,9 @@ backend = systemd
 [sshd]
 enabled = true
 filter = sshd
-port = 55520
-action = iptables[name=SSH, port=55520, protocol=tcp]
-logpath = /var/log/auth.log
+port = ${ssh_port}
+action = iptables[name=SSH, port=${ssh_port}, protocol=tcp]
+logpath = %(sshd_log)s
 bantime = 86400
 findtime = 86400
 maxretry = 3
@@ -3133,21 +3210,20 @@ EOF
 
     systemctl enable fail2ban >/dev/null 2>&1
     systemctl restart fail2ban
-    ok "堡垒防护已上线！全网所有胆敢连续猜错 3 次密码的野鸡扫描器将会被物理拉黑 24 小时。"
+    vps_ok "堡垒防护已上线！全网所有胆敢连续猜错 3 次密码的野鸡扫描器将会被物理拉黑 24 小时。（监控端口: ${ssh_port}）"
 }
 
 # === 模块 5：修改 SSH 端口与密钥登录 ===
 func_ssh_secure() {
-    info "正在将 SSH 默认端口 22 修改为隐蔽端口 55520 (防扫描)..."
+    vps_info "正在将 SSH 默认端口 22 修改为隐蔽端口 55520 (防扫描)..."
     sed -i 's/^#\?Port .*/Port 55520/g' /etc/ssh/sshd_config
-    # 兼容处理未生效情况
     if ! grep -q "^Port 55520" /etc/ssh/sshd_config; then
         echo "Port 55520" >> /etc/ssh/sshd_config
     fi
     systemctl restart sshd
-    ok "SSH 端口已成功修改为 55520！请务必记住下次连接机器时指定 -p 55520"
+    vps_ok "SSH 端口已成功修改为 55520！请务必记住下次连接机器时指定 -p 55520"
     echo "-----------------------------------"
-    info "调用你指定的开源密钥挂载体系(yuju520/Script)接入中..."
+    vps_info "调用你指定的开源密钥挂载体系(yuju520/Script)接入中..."
     echo -e "${RED}${BOLD}=================== 【生 死 警 告】 ===================${NC}"
     echo -e "${YELLOW}一旦你生成完密钥退出系统，你以后将永远无法再通过普通的密码方式登录机器！${NC}"
     echo -e "${YELLOW}你必须极其妥善地把私钥(Private Key)保存在你的所有电脑终端口。${NC}"
@@ -3158,20 +3234,39 @@ func_ssh_secure() {
 }
 
 # === 模块 6：大佬级网络调优与BBRx ===
+# 【优化】增加交互式重启询问
 func_tune_bbr() {
-    info "远程劫持 jerry048/Tune 中的超级系统级底层并发参数进行调优 (-t)..."
+    vps_info "远程劫持 jerry048/Tune 中的超级系统级底层并发参数进行调优 (-t)..."
     bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -t
-    ok "队列深度、TCP重传、缓冲区优化文件全部注入！"
+    vps_ok "队列深度、TCP重传、缓冲区优化文件全部注入！"
     echo ""
-    info "正在强制推平旧版堵塞控制，将网络架构提升为最强算法 BBRx (-x)..."
+    vps_info "正在强制推平旧版堵塞控制，将网络架构提升为最强算法 BBRx (-x)..."
     bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -x
-    ok "新内核替换安装完成！"
-    echo -e "${YELLOW}⚠️ 此时内核虽然写入，但并没有装载成功。你必须亲自重启电脑 (Reboot) 才能生效这种手术带来的改变！${NC}"
+    vps_ok "新内核替换安装完成！"
+    echo ""
+    echo -e "${YELLOW}⚠️ 此时内核虽然写入，但并没有装载成功。你必须重启 (Reboot) 才能生效！${NC}"
+    echo ""
+    read -p "$(echo -e ${GREEN}是否立即重启 VPS 使 BBRx 生效？${NC} [Y/n]: )" reboot_choice
+    reboot_choice="${reboot_choice:-Y}"
+    if [[ "$reboot_choice" == "Y" || "$reboot_choice" == "y" ]]; then
+        echo -e "${RED}主机即将重启，BBRx 将在重启后正式接管网络引擎！再见！${NC}"
+        sleep 2
+        reboot
+    else
+        echo -e "${YELLOW}已跳过重启。请记得稍后手动执行: reboot${NC}"
+    fi
 }
 
+# ══════════════════════════════════════════════════════════
+# 模块: 21_vps_menu.sh
+# ══════════════════════════════════════════════════════════
+
 # ============================================================
-# 系统主菜单调度核心
+# VPS 新机一键初始化 · 菜单系统
+# 【优化】选项0执行顺序调整为：update → timezone → swap → fail2ban → ssh → bbr
+# 【优化】IP探测超时缩短为2秒
 # ============================================================
+
 show_menu() {
     clear
     echo ""
@@ -3180,11 +3275,11 @@ show_menu() {
     echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════╝${NC}"
     echo ""
 
-    # 使用极致强制性的双栈网络探针
+    # 【优化】缩短超时为2秒，避免串行等待9秒
     local sys_ip
-    sys_ip=$(curl -s -4 --connect-timeout 3 ip.sb 2>/dev/null)
-    [ -z "$sys_ip" ] && sys_ip=$(curl -s -4 --connect-timeout 3 icanhazip.com 2>/dev/null)
-    [ -z "$sys_ip" ] && sys_ip=$(curl -s -4 --connect-timeout 3 api.ipify.org 2>/dev/null)
+    sys_ip=$(curl -s -4 --connect-timeout 2 ip.sb 2>/dev/null)
+    [ -z "$sys_ip" ] && sys_ip=$(curl -s -4 --connect-timeout 2 icanhazip.com 2>/dev/null)
+    [ -z "$sys_ip" ] && sys_ip=$(curl -s -4 --connect-timeout 2 api.ipify.org 2>/dev/null)
     [ -z "$sys_ip" ] && sys_ip="连接源服务器严重超时"
 
     local sys_os
@@ -3207,10 +3302,6 @@ show_menu() {
     echo ""
 }
 
-# ============================================================
-# 无限控制循环门
-# ============================================================
-
 vps_menu_loop() {
     while true; do
         show_menu
@@ -3219,13 +3310,14 @@ vps_menu_loop() {
         case $choice in
             0)
                 echo ""
-                info "即将串行自动挡启动！由于切分 SWAP 需要你预先分配大小，我们将它直接排在了首个执行！"
-                echo "-----------------------------------"
-                func_swap
+                # 【优化】调整执行顺序：先 update 确保包源最新，再做其他配置
+                vps_info "即将串行自动挡启动！由于切分 SWAP 需要你预先分配大小，我们将它排在更新之后！"
                 echo "-----------------------------------"
                 func_update
                 echo "-----------------------------------"
                 func_timezone
+                echo "-----------------------------------"
+                func_swap
                 echo "-----------------------------------"
                 func_fail2ban
                 echo "-----------------------------------"
@@ -3258,12 +3350,29 @@ vps_menu_loop() {
                 ;;
         esac
     done
-    
 }
+
+# ══════════════════════════════════════════════════════════
+# 模块: 99_main.sh
+# ══════════════════════════════════════════════════════════
 
 # ============================================================
 # 终极世界树主菜单 (Super Main Menu)
 # ============================================================
+
+# DMIT 菜单内部使用的短名称别名
+# 原始代码中 dmit_menu 引用了这些短名，但函数定义用了 *_dmit_menu 全名
+# 这里统一建立别名，确保菜单正常工作
+pause_main()          { pause_dmit_main; }
+dns_switch_menu()     { dns_switch_dmit_menu; }
+mtu_menu()            { mtu_dmit_menu; }
+ipv6_tools_menu()     { ipv6_tools_dmit_menu; }
+ssh_menu()            { ssh_dmit_menu; }
+tests_menu()          { tests_dmit_menu; }
+cloudinit_qga_menu()  { cloudinit_qga_dmit_menu; }
+menu()                { dmit_menu; }
+_need_root()          { need_root; }
+
 super_main_menu() {
     clear
     echo ""
