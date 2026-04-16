@@ -1,0 +1,7 @@
+﻿# 构建临时文件
+init.sh.new
+init.sh.bak
+init.sh.original
+
+# 工具配置
+.claude/
