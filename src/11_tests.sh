@@ -1,4 +1,4 @@
-﻿
+
 run_remote_script() {
   local title="$1"
   local cmd="$2"

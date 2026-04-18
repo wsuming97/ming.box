@@ -1,4 +1,4 @@
-﻿ok()   { echo -e "${c_green}✔${c_reset} $*"; }
+ok()   { echo -e "${c_green}✔${c_reset} $*"; }
 info() { echo -e "${c_cyan}➜${c_reset} $*"; }
 warn() { echo -e "${c_yellow}⚠${c_reset} $*"; }
 

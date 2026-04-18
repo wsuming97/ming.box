@@ -1,4 +1,4 @@
-﻿# ---------------- helpers ----------------
+# ---------------- helpers ----------------
 default_iface() {
   local ifc=""
   ifc="$(ip -4 route 2>/dev/null | awk '/^default/{print $5; exit}' || true)"

@@ -1,4 +1,4 @@
-﻿
+
 dmit_menu() {
   RUN_MODE="menu"
   while true; do

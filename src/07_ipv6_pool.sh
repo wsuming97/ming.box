@@ -1,4 +1,4 @@
-﻿
+
 ipv6_prefix64_guess() {
   local ifc="${1:-$(default_iface)}"
   local a=""

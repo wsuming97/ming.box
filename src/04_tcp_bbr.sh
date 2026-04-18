@@ -1,4 +1,4 @@
-﻿
+
 bbr_check() {
   echo "================ BBR 检测 ================"
   echo "kernel=$(uname -r)"

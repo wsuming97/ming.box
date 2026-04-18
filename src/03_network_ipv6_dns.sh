@@ -1,4 +1,4 @@
-﻿
+
 # ---------------- 时区：中国 ----------------
 set_timezone_china() {
   info "时区：设置为中国（Asia/Shanghai）"

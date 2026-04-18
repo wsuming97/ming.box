@@ -1,4 +1,4 @@
-﻿
+
 ipv6_rand_write_conf() {
   local ifc="$1" prefix64="$2" n="$3"
   shift 3

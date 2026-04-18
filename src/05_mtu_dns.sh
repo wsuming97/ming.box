@@ -1,4 +1,4 @@
-﻿
+
 # ---------------- DNS 切换/恢复 ----------------
 dns_backup_once() {
   ensure_dir "$BACKUP_BASE"

@@ -1,4 +1,4 @@
-﻿
+
 restore_all() {
   local ifc; ifc="$(default_iface)"
   info "一键还原：撤销本脚本改动（DNS/MTU/IPv6/TCP/优先级/SSH/IPv6池/随机出网）"

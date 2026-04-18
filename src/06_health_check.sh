@@ -1,4 +1,4 @@
-﻿print_kv() { printf "%-20s %s\n" "$1" "$2"; }
+print_kv() { printf "%-20s %s\n" "$1" "$2"; }
 
 health_check_core() {
   local ifc; ifc="$(default_iface)"

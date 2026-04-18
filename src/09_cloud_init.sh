@@ -1,4 +1,4 @@
-﻿
+
 cloudinit_qga_detect_static_network() {
   # Return 0 if static networking is detected (higher risk cloud-init overrides),
   # Return 1 otherwise.
