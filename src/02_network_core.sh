@@ -89,3 +89,4 @@ env_snapshot() {
 
   ok "已保存：${bdir}"
   echo "查看：less -S ${bdir}/state.txt"
+}

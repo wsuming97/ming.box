@@ -341,6 +341,7 @@ env_snapshot() {
 
   ok "已保存：${bdir}"
   echo "查看：less -S ${bdir}/state.txt"
+}
 
 # ══════════════════════════════════════════════════════════
 # 模块: 03_network_ipv6_dns.sh
@@ -3397,3 +3398,5 @@ while true; do
         *) echo -e "\n\033[0;31m跳跃失败，请输入范围内的合法指令。\033[0m"; sleep 1 ;;
     esac
 done
+
+# ── 构建时间: 2026-04-18 01:51:52 UTC ──
