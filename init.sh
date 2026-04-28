@@ -3185,9 +3185,17 @@ func_fail2ban() {
     export DEBIAN_FRONTEND=noninteractive
     apt install -y fail2ban
 
-    # 动态获取当前 SSH 端口（兼容未改端口和已改端口的情况）
-    local ssh_port
-    ssh_port=$(grep -E '^[[:space:]]*Port[[:space:]]' /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' | head -1)
+    # 动态获取当前 SSH 实际生效端口（三级探测，确保准确）
+    # 1. 优先用 sshd -T 读取运行时生效配置（最可靠）
+    # 2. 其次搜索主配置 + drop-in 目录（兼容 sshd 未运行的场景）
+    # 3. 最终兜底为 22
+    local ssh_port=""
+    if command -v sshd &>/dev/null; then
+        ssh_port=$(sshd -T 2>/dev/null | awk '$1=="port"{print $2; exit}')
+    fi
+    if [[ -z "$ssh_port" ]]; then
+        ssh_port=$(grep -RihE '^[[:space:]]*Port[[:space:]]+' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ 2>/dev/null | awk '{print $2}' | head -1)
+    fi
     ssh_port="${ssh_port:-22}"
 
     vps_info "正在将定制防护伞机制写入 /etc/fail2ban/jail.local（监控端口: ${ssh_port}）..."
@@ -3223,6 +3231,16 @@ func_ssh_secure() {
     fi
     systemctl restart sshd
     vps_ok "SSH 端口已成功修改为 55520！请务必记住下次连接机器时指定 -p 55520"
+
+    # 【关键】如果 fail2ban 已安装，同步更新其监控端口，防止选项0全自动流程中端口错位
+    if [[ -f /etc/fail2ban/jail.local ]] && command -v fail2ban-client &>/dev/null; then
+        vps_info "检测到 Fail2ban 已安装，正在同步监控端口为 55520..."
+        sed -i 's/^port = .*/port = 55520/' /etc/fail2ban/jail.local
+        sed -i 's/port=[0-9]*/port=55520/' /etc/fail2ban/jail.local
+        systemctl restart fail2ban 2>/dev/null || true
+        vps_ok "Fail2ban 监控端口已同步更新为 55520"
+    fi
+
     echo "-----------------------------------"
     vps_info "调用你指定的开源密钥挂载体系(yuju520/Script)接入中..."
     echo -e "${RED}${BOLD}=================== 【生 死 警 告】 ===================${NC}"
