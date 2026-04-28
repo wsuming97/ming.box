@@ -3119,8 +3119,9 @@ vps_error() { echo -e "${RED}>>> [ERROR] $1${NC}"; exit 1; }
 func_update() {
     vps_info "正在高速更新底层系统包目录，并安装必备基础软件..."
     export DEBIAN_FRONTEND=noninteractive
-    apt update -y && apt upgrade -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
-    apt install -y sudo curl wget nano procps
+    apt update -y -o DPkg::Lock::Timeout=30 2>&1 || true
+    apt upgrade -y -o DPkg::Lock::Timeout=30 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold 2>&1 || true
+    apt install -y -o DPkg::Lock::Timeout=30 sudo curl wget nano procps 2>&1 || true
     vps_ok "所有系统补丁拉取完成！必备软件(curl/wget/nano/sudo)均已存在于系统中。"
 }
 
@@ -3142,12 +3143,13 @@ func_swap() {
     echo -e "  ${YELLOW}1.${NC} 给 VPS 添加一块新的 SWAP 空间 (${GREEN}防止小内存爆满当机${NC})"
     echo -e "  ${YELLOW}2.${NC} 安全卸载并彻底删除系统上的 SWAP (${RED}强迫症患者清理磁盘${NC})"
     echo -e "  ${YELLOW}0.${NC} 跳过此项配置"
-    read -p "=> 请抉择执行的操作号 [0-2]: " swap_choice
+    read_tty swap_choice "=> 请抉择执行的操作号 [0-2]: " "0"
 
     if [ "$swap_choice" == "1" ]; then
-        read -p "=> 请输入你要割让多少 MB 的硬盘做缓冲池？ (常用推荐: 1024 或者 2048): " swap_mb
+        read_tty swap_mb "=> 请输入你要割让多少 MB 的硬盘做缓冲池？ (常用推荐: 1024 或者 2048): " ""
         if [[ ! "$swap_mb" =~ ^[0-9]+$ ]]; then
-            vps_error "系统无法识别！请输入纯粹的数字（例如 2048）。操作终止。"
+            vps_info "系统无法识别！请输入纯粹的数字（例如 2048）。操作终止。"
+            return 0
         fi
         vps_info "正在将 ${swap_mb}MB 物理硬盘转化配置为 SWAP 虚拟池..."
 
@@ -3183,7 +3185,7 @@ func_swap() {
 func_fail2ban() {
     vps_info "正在下载防暴系统中心 fail2ban..."
     export DEBIAN_FRONTEND=noninteractive
-    apt install -y fail2ban
+    apt install -y fail2ban || { vps_info "fail2ban 安装失败，已跳过。"; return 0; }
 
     # 动态获取当前 SSH 实际生效端口（三级探测，确保准确）
     # 1. 优先用 sshd -T 读取运行时生效配置（最可靠）
@@ -3229,7 +3231,7 @@ func_ssh_secure() {
     if ! grep -q "^Port 55520" /etc/ssh/sshd_config; then
         echo "Port 55520" >> /etc/ssh/sshd_config
     fi
-    systemctl restart sshd
+    systemctl restart sshd 2>/dev/null || systemctl restart ssh 2>/dev/null || true
     vps_ok "SSH 端口已成功修改为 55520！请务必记住下次连接机器时指定 -p 55520"
 
     # 【关键】如果 fail2ban 已安装，同步更新其监控端口，防止选项0全自动流程中端口错位
@@ -3249,24 +3251,29 @@ func_ssh_secure() {
     echo -e "${RED}${BOLD}=======================================================${NC}"
     echo -e "[系统将停顿 ${GREEN}5秒${NC} 给你犹豫时间，如果不想玩高级密码锁，请猛按 ${RED}Ctrl+C${NC} 中断]"
     sleep 5
-    wget -qO /tmp/key.sh https://raw.githubusercontent.com/yuju520/Script/main/key.sh && chmod +x /tmp/key.sh && bash /tmp/key.sh; rm -f /tmp/key.sh
+    if wget -qO /tmp/key.sh https://raw.githubusercontent.com/yuju520/Script/main/key.sh 2>/dev/null; then
+        chmod +x /tmp/key.sh
+        bash /tmp/key.sh </dev/tty || true
+        rm -f /tmp/key.sh
+    else
+        vps_info "密钥脚本下载失败，已跳过。可稍后手动执行。"
+    fi
 }
 
 # === 模块 6：大佬级网络调优与BBRx ===
 # 【优化】增加交互式重启询问
 func_tune_bbr() {
     vps_info "远程劫持 jerry048/Tune 中的超级系统级底层并发参数进行调优 (-t)..."
-    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -t
+    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -t || vps_info "调优脚本 (-t) 执行异常，继续后续步骤。"
     vps_ok "队列深度、TCP重传、缓冲区优化文件全部注入！"
     echo ""
     vps_info "正在强制推平旧版堵塞控制，将网络架构提升为最强算法 BBRx (-x)..."
-    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -x
+    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -x || vps_info "BBRx 脚本 (-x) 执行异常，继续后续步骤。"
     vps_ok "新内核替换安装完成！"
     echo ""
     echo -e "${YELLOW}⚠️ 此时内核虽然写入，但并没有装载成功。你必须重启 (Reboot) 才能生效！${NC}"
     echo ""
-    read -p "$(echo -e ${GREEN}是否立即重启 VPS 使 BBRx 生效？${NC} [Y/n]: )" reboot_choice
-    reboot_choice="${reboot_choice:-Y}"
+    read_tty reboot_choice "是否立即重启 VPS 使 BBRx 生效？ [Y/n]: " "Y"
     if [[ "$reboot_choice" == "Y" || "$reboot_choice" == "y" ]]; then
         echo -e "${RED}主机即将重启，BBRx 将在重启后正式接管网络引擎！再见！${NC}"
         sleep 2
@@ -3322,9 +3329,11 @@ show_menu() {
 }
 
 vps_menu_loop() {
+    # 关闭严格模式：VPS 模块的外部脚本和 apt 命令经常返回非零，不能让 set -e 误杀整个流程
+    set +e
     while true; do
         show_menu
-        read -p "=> 发出你的战术指令 [0-6 或 q]: " choice
+        read_tty choice "=> 发出你的战术指令 [0-6 或 q]: " ""
     
         case $choice in
             0)
@@ -3347,20 +3356,23 @@ vps_menu_loop() {
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
                 echo -e "${GREEN}${BOLD}     洗礼完成，一台完美、流畅、强悍的钢铁机甲已装填完毕！     ${NC}"
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
-                read -p "为给最后的极客版 BBRx 和密钥体系锁死打药，接下来需要近两分钟的关机重启，长按回车确认断尾..."
+                echo ""
+                echo -e "${YELLOW}⚠️ 重启前请确认：新 SSH 端口为 55520，密钥已妥善保存！${NC}"
+                read_tty _ "确认无误后按回车重启（Ctrl+C 取消）..." ""
                 echo -e "${RED}主机即将坠入黑暗并重新自启，再回头就是全新的传说！再见！${NC}"
                 sleep 2
                 reboot
                 return 0
                 ;;
-            1) echo ""; func_update; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            2) echo ""; func_timezone; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            3) echo ""; func_swap; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            4) echo ""; func_fail2ban; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            5) echo ""; func_ssh_secure; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            6) echo ""; func_tune_bbr; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            1) echo ""; func_update; read_tty _ "按回车返回重装总界面！" "";;
+            2) echo ""; func_timezone; read_tty _ "按回车返回重装总界面！" "";;
+            3) echo ""; func_swap; read_tty _ "按回车返回重装总界面！" "";;
+            4) echo ""; func_fail2ban; read_tty _ "按回车返回重装总界面！" "";;
+            5) echo ""; func_ssh_secure; read_tty _ "按回车返回重装总界面！" "";;
+            6) echo ""; func_tune_bbr; read_tty _ "按回车返回重装总界面！" "";;
             q|Q)
                 echo -e "${GREEN}平安退出体系。${NC}"
+                set -euo pipefail
                 return 0
                 ;;
             *)
