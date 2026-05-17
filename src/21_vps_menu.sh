@@ -1,6 +1,7 @@
 # ============================================================
 # VPS 新机一键初始化 · 菜单系统
-# 【优化】选项0执行顺序调整为：update → timezone → swap → fail2ban → ssh → bbr
+# 【优化】选项0执行顺序调整为：update → timezone → swap → ssh → fail2ban → bbr
+# 【修复】先改SSH端口再装Fail2ban，确保Fail2ban动态读取到正确端口55520
 # 【优化】IP探测超时缩短为2秒
 # ============================================================
 
@@ -31,8 +32,8 @@ show_menu() {
     echo -e "  ${YELLOW}1.${NC} 📦 为内核和源执行 Update 刷新操作"
     echo -e "  ${YELLOW}2.${NC} 🕐 单独校正本台机器的时间标尺 (Asia/Shanghai)"
     echo -e "  ${YELLOW}3.${NC} 💾 交互式部署虚拟内存池 SWAP (加多少随时定/支持删除)"
-    echo -e "  ${YELLOW}4.${NC} 🛡️ 焊死防爆大门 (Fail2ban SSH封锁策略，锁定1天)"
-    echo -e "  ${YELLOW}5.${NC} 🔑 修改缺省 22 端口为 55520 并替换为高级密钥锁 (yuju版)"
+    echo -e "  ${YELLOW}4.${NC} 🔑 修改缺省 22 端口为 55520 并替换为高级密钥锁 (yuju版)"
+    echo -e "  ${YELLOW}5.${NC} 🛡️ 焊死防爆大门 (Fail2ban SSH封锁策略，锁定1天)"
     echo -e "  ${YELLOW}6.${NC} ⚡ 单挑装网神功：黑科技内核调优与 BBRx 加速 (jerry048版)"
     echo -e "  ${YELLOW}q.${NC} 暂且不用，我回去了"
     line
@@ -56,9 +57,9 @@ vps_menu_loop() {
                 echo "-----------------------------------"
                 func_swap
                 echo "-----------------------------------"
-                func_fail2ban
-                echo "-----------------------------------"
                 func_ssh_secure
+                echo "-----------------------------------"
+                func_fail2ban
                 echo "-----------------------------------"
                 func_tune_bbr
                 echo "-----------------------------------"
@@ -74,8 +75,8 @@ vps_menu_loop() {
             1) echo ""; func_update; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
             2) echo ""; func_timezone; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
             3) echo ""; func_swap; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            4) echo ""; func_fail2ban; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
-            5) echo ""; func_ssh_secure; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            4) echo ""; func_ssh_secure; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            5) echo ""; func_fail2ban; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
             6) echo ""; func_tune_bbr; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
             q|Q)
                 echo -e "${GREEN}平安退出体系。${NC}"

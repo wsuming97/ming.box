@@ -3119,9 +3119,8 @@ vps_error() { echo -e "${RED}>>> [ERROR] $1${NC}"; exit 1; }
 func_update() {
     vps_info "正在高速更新底层系统包目录，并安装必备基础软件..."
     export DEBIAN_FRONTEND=noninteractive
-    apt update -y -o DPkg::Lock::Timeout=30 2>&1 || true
-    apt upgrade -y -o DPkg::Lock::Timeout=30 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold 2>&1 || true
-    apt install -y -o DPkg::Lock::Timeout=30 sudo curl wget nano procps 2>&1 || true
+    apt update -y && apt upgrade -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
+    apt install -y sudo curl wget nano procps
     vps_ok "所有系统补丁拉取完成！必备软件(curl/wget/nano/sudo)均已存在于系统中。"
 }
 
@@ -3143,13 +3142,12 @@ func_swap() {
     echo -e "  ${YELLOW}1.${NC} 给 VPS 添加一块新的 SWAP 空间 (${GREEN}防止小内存爆满当机${NC})"
     echo -e "  ${YELLOW}2.${NC} 安全卸载并彻底删除系统上的 SWAP (${RED}强迫症患者清理磁盘${NC})"
     echo -e "  ${YELLOW}0.${NC} 跳过此项配置"
-    read_tty swap_choice "=> 请抉择执行的操作号 [0-2]: " "0"
+    read -p "=> 请抉择执行的操作号 [0-2]: " swap_choice
 
     if [ "$swap_choice" == "1" ]; then
-        read_tty swap_mb "=> 请输入你要割让多少 MB 的硬盘做缓冲池？ (常用推荐: 1024 或者 2048): " ""
+        read -p "=> 请输入你要割让多少 MB 的硬盘做缓冲池？ (常用推荐: 1024 或者 2048): " swap_mb
         if [[ ! "$swap_mb" =~ ^[0-9]+$ ]]; then
-            vps_info "系统无法识别！请输入纯粹的数字（例如 2048）。操作终止。"
-            return 0
+            vps_error "系统无法识别！请输入纯粹的数字（例如 2048）。操作终止。"
         fi
         vps_info "正在将 ${swap_mb}MB 物理硬盘转化配置为 SWAP 虚拟池..."
 
@@ -3185,19 +3183,11 @@ func_swap() {
 func_fail2ban() {
     vps_info "正在下载防暴系统中心 fail2ban..."
     export DEBIAN_FRONTEND=noninteractive
-    apt install -y fail2ban || { vps_info "fail2ban 安装失败，已跳过。"; return 0; }
+    apt install -y fail2ban
 
-    # 动态获取当前 SSH 实际生效端口（三级探测，确保准确）
-    # 1. 优先用 sshd -T 读取运行时生效配置（最可靠）
-    # 2. 其次搜索主配置 + drop-in 目录（兼容 sshd 未运行的场景）
-    # 3. 最终兜底为 22
-    local ssh_port=""
-    if command -v sshd &>/dev/null; then
-        ssh_port=$(sshd -T 2>/dev/null | awk '$1=="port"{print $2; exit}')
-    fi
-    if [[ -z "$ssh_port" ]]; then
-        ssh_port=$(grep -RihE '^[[:space:]]*Port[[:space:]]+' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ 2>/dev/null | awk '{print $2}' | head -1)
-    fi
+    # 动态获取当前 SSH 端口（兼容未改端口和已改端口的情况）
+    local ssh_port
+    ssh_port=$(grep -E '^[[:space:]]*Port[[:space:]]' /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' | head -1)
     ssh_port="${ssh_port:-22}"
 
     vps_info "正在将定制防护伞机制写入 /etc/fail2ban/jail.local（监控端口: ${ssh_port}）..."
@@ -3231,18 +3221,8 @@ func_ssh_secure() {
     if ! grep -q "^Port 55520" /etc/ssh/sshd_config; then
         echo "Port 55520" >> /etc/ssh/sshd_config
     fi
-    systemctl restart sshd 2>/dev/null || systemctl restart ssh 2>/dev/null || true
+    systemctl restart sshd
     vps_ok "SSH 端口已成功修改为 55520！请务必记住下次连接机器时指定 -p 55520"
-
-    # 【关键】如果 fail2ban 已安装，同步更新其监控端口，防止选项0全自动流程中端口错位
-    if [[ -f /etc/fail2ban/jail.local ]] && command -v fail2ban-client &>/dev/null; then
-        vps_info "检测到 Fail2ban 已安装，正在同步监控端口为 55520..."
-        sed -i 's/^port = .*/port = 55520/' /etc/fail2ban/jail.local
-        sed -i 's/port=[0-9]*/port=55520/' /etc/fail2ban/jail.local
-        systemctl restart fail2ban 2>/dev/null || true
-        vps_ok "Fail2ban 监控端口已同步更新为 55520"
-    fi
-
     echo "-----------------------------------"
     vps_info "调用你指定的开源密钥挂载体系(yuju520/Script)接入中..."
     echo -e "${RED}${BOLD}=================== 【生 死 警 告】 ===================${NC}"
@@ -3251,29 +3231,24 @@ func_ssh_secure() {
     echo -e "${RED}${BOLD}=======================================================${NC}"
     echo -e "[系统将停顿 ${GREEN}5秒${NC} 给你犹豫时间，如果不想玩高级密码锁，请猛按 ${RED}Ctrl+C${NC} 中断]"
     sleep 5
-    if wget -qO /tmp/key.sh https://raw.githubusercontent.com/yuju520/Script/main/key.sh 2>/dev/null; then
-        chmod +x /tmp/key.sh
-        bash /tmp/key.sh </dev/tty || true
-        rm -f /tmp/key.sh
-    else
-        vps_info "密钥脚本下载失败，已跳过。可稍后手动执行。"
-    fi
+    wget -qO /tmp/key.sh https://raw.githubusercontent.com/yuju520/Script/main/key.sh && chmod +x /tmp/key.sh && bash /tmp/key.sh; rm -f /tmp/key.sh
 }
 
 # === 模块 6：大佬级网络调优与BBRx ===
 # 【优化】增加交互式重启询问
 func_tune_bbr() {
     vps_info "远程劫持 jerry048/Tune 中的超级系统级底层并发参数进行调优 (-t)..."
-    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -t || vps_info "调优脚本 (-t) 执行异常，继续后续步骤。"
+    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -t
     vps_ok "队列深度、TCP重传、缓冲区优化文件全部注入！"
     echo ""
     vps_info "正在强制推平旧版堵塞控制，将网络架构提升为最强算法 BBRx (-x)..."
-    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -x || vps_info "BBRx 脚本 (-x) 执行异常，继续后续步骤。"
+    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -x
     vps_ok "新内核替换安装完成！"
     echo ""
     echo -e "${YELLOW}⚠️ 此时内核虽然写入，但并没有装载成功。你必须重启 (Reboot) 才能生效！${NC}"
     echo ""
-    read_tty reboot_choice "是否立即重启 VPS 使 BBRx 生效？ [Y/n]: " "Y"
+    read -p "$(echo -e ${GREEN}是否立即重启 VPS 使 BBRx 生效？${NC} [Y/n]: )" reboot_choice
+    reboot_choice="${reboot_choice:-Y}"
     if [[ "$reboot_choice" == "Y" || "$reboot_choice" == "y" ]]; then
         echo -e "${RED}主机即将重启，BBRx 将在重启后正式接管网络引擎！再见！${NC}"
         sleep 2
@@ -3289,7 +3264,8 @@ func_tune_bbr() {
 
 # ============================================================
 # VPS 新机一键初始化 · 菜单系统
-# 【优化】选项0执行顺序调整为：update → timezone → swap → fail2ban → ssh → bbr
+# 【优化】选项0执行顺序调整为：update → timezone → swap → ssh → fail2ban → bbr
+# 【修复】先改SSH端口再装Fail2ban，确保Fail2ban动态读取到正确端口55520
 # 【优化】IP探测超时缩短为2秒
 # ============================================================
 
@@ -3320,8 +3296,8 @@ show_menu() {
     echo -e "  ${YELLOW}1.${NC} 📦 为内核和源执行 Update 刷新操作"
     echo -e "  ${YELLOW}2.${NC} 🕐 单独校正本台机器的时间标尺 (Asia/Shanghai)"
     echo -e "  ${YELLOW}3.${NC} 💾 交互式部署虚拟内存池 SWAP (加多少随时定/支持删除)"
-    echo -e "  ${YELLOW}4.${NC} 🛡️ 焊死防爆大门 (Fail2ban SSH封锁策略，锁定1天)"
-    echo -e "  ${YELLOW}5.${NC} 🔑 修改缺省 22 端口为 55520 并替换为高级密钥锁 (yuju版)"
+    echo -e "  ${YELLOW}4.${NC} 🔑 修改缺省 22 端口为 55520 并替换为高级密钥锁 (yuju版)"
+    echo -e "  ${YELLOW}5.${NC} 🛡️ 焊死防爆大门 (Fail2ban SSH封锁策略，锁定1天)"
     echo -e "  ${YELLOW}6.${NC} ⚡ 单挑装网神功：黑科技内核调优与 BBRx 加速 (jerry048版)"
     echo -e "  ${YELLOW}q.${NC} 暂且不用，我回去了"
     line
@@ -3329,11 +3305,9 @@ show_menu() {
 }
 
 vps_menu_loop() {
-    # 关闭严格模式：VPS 模块的外部脚本和 apt 命令经常返回非零，不能让 set -e 误杀整个流程
-    set +e
     while true; do
         show_menu
-        read_tty choice "=> 发出你的战术指令 [0-6 或 q]: " ""
+        read -p "=> 发出你的战术指令 [0-6 或 q]: " choice
     
         case $choice in
             0)
@@ -3347,32 +3321,29 @@ vps_menu_loop() {
                 echo "-----------------------------------"
                 func_swap
                 echo "-----------------------------------"
-                func_fail2ban
-                echo "-----------------------------------"
                 func_ssh_secure
+                echo "-----------------------------------"
+                func_fail2ban
                 echo "-----------------------------------"
                 func_tune_bbr
                 echo "-----------------------------------"
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
                 echo -e "${GREEN}${BOLD}     洗礼完成，一台完美、流畅、强悍的钢铁机甲已装填完毕！     ${NC}"
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
-                echo ""
-                echo -e "${YELLOW}⚠️ 重启前请确认：新 SSH 端口为 55520，密钥已妥善保存！${NC}"
-                read_tty _ "确认无误后按回车重启（Ctrl+C 取消）..." ""
+                read -p "为给最后的极客版 BBRx 和密钥体系锁死打药，接下来需要近两分钟的关机重启，长按回车确认断尾..."
                 echo -e "${RED}主机即将坠入黑暗并重新自启，再回头就是全新的传说！再见！${NC}"
                 sleep 2
                 reboot
                 return 0
                 ;;
-            1) echo ""; func_update; read_tty _ "按回车返回重装总界面！" "";;
-            2) echo ""; func_timezone; read_tty _ "按回车返回重装总界面！" "";;
-            3) echo ""; func_swap; read_tty _ "按回车返回重装总界面！" "";;
-            4) echo ""; func_fail2ban; read_tty _ "按回车返回重装总界面！" "";;
-            5) echo ""; func_ssh_secure; read_tty _ "按回车返回重装总界面！" "";;
-            6) echo ""; func_tune_bbr; read_tty _ "按回车返回重装总界面！" "";;
+            1) echo ""; func_update; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            2) echo ""; func_timezone; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            3) echo ""; func_swap; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            4) echo ""; func_ssh_secure; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            5) echo ""; func_fail2ban; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
+            6) echo ""; func_tune_bbr; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
             q|Q)
                 echo -e "${GREEN}平安退出体系。${NC}"
-                set -euo pipefail
                 return 0
                 ;;
             *)
@@ -3429,4 +3400,4 @@ while true; do
     esac
 done
 
-# ── 构建时间: 2026-04-18 01:51:52 UTC ──
+# ── 构建时间: 2026-05-17 01:19:53 UTC ──
