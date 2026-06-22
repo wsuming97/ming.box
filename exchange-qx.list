@@ -1,7 +1,3 @@
-# 交易所域名规则集 — Quantumult X 远程列表格式
-# 作者：wsuming97  更新：2026-06-22
-
-# Binance（币安）
 HOST-SUFFIX,binance.com
 HOST-SUFFIX,bnappcdn.com
 HOST-SUFFIX,bnbstatic.com
@@ -15,16 +11,12 @@ HOST-SUFFIX,binance.net
 HOST-SUFFIX,binance.org
 HOST-SUFFIX,binance.vision
 HOST-SUFFIX,binance.us
-
-# OKX（欧易）
 HOST-SUFFIX,okx.com
 HOST-SUFFIX,okex.com
 HOST-SUFFIX,okx-cdn.com
 HOST-SUFFIX,okx-dns.com
 HOST-SUFFIX,okex.co
 HOST-SUFFIX,okex.net
-
-# Bybit
 HOST-SUFFIX,bybit.com
 HOST-SUFFIX,bybit.co
 HOST-SUFFIX,bybit.net
@@ -35,14 +27,10 @@ HOST-SUFFIX,bycsi.com
 HOST-SUFFIX,byapis.com
 HOST-SUFFIX,byhkbit.com
 HOST-SUFFIX,b26.io
-
-# Coinbase
 HOST-SUFFIX,coinbase.com
 HOST-SUFFIX,coinbase.co
 HOST-SUFFIX,coinbase.net
 HOST-SUFFIX,coinbasecloud.net
-
-# Bitget
 HOST-SUFFIX,bitget.com
 HOST-SUFFIX,bitget.net
 HOST-SUFFIX,bitget.co
