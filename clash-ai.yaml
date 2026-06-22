@@ -209,9 +209,9 @@ proxy-groups:
   - name: 🪙 交易所
     type: select
     proxies:
-      - DIRECT
       - 🚀 节点选择
       - ♻️ 自动选择
+      - DIRECT
       - REJECT
     use:
       - sub1
@@ -268,6 +268,8 @@ rules:
   # 币安 (Binance)
   - DOMAIN-SUFFIX,binance.com,🪙 交易所
   - DOMAIN-SUFFIX,bnappcdn.com,🪙 交易所
+  - DOMAIN-SUFFIX,bnbstatic.com,🪙 交易所
+  - DOMAIN-SUFFIX,binancecnt.com,🪙 交易所
   - DOMAIN-SUFFIX,binance.charity,🪙 交易所
   - DOMAIN-SUFFIX,binance.cloud,🪙 交易所
   - DOMAIN-SUFFIX,binance.co,🪙 交易所
@@ -281,6 +283,7 @@ rules:
   # 欧易 (OKX)
   - DOMAIN-SUFFIX,okx.com,🪙 交易所
   - DOMAIN-SUFFIX,okex.com,🪙 交易所
+  - DOMAIN-SUFFIX,okx-cdn.com,🪙 交易所
   - DOMAIN-SUFFIX,okx-dns.com,🪙 交易所
   - DOMAIN-SUFFIX,okex.co,🪙 交易所
   - DOMAIN-SUFFIX,okex.net,🪙 交易所
@@ -290,11 +293,24 @@ rules:
   - DOMAIN-SUFFIX,bybit.co,🪙 交易所
   - DOMAIN-SUFFIX,bybit.net,🪙 交易所
   - DOMAIN-SUFFIX,byapps.net,🪙 交易所
+  - DOMAIN-SUFFIX,bytick.com,🪙 交易所
+  - DOMAIN-SUFFIX,bybitglobal.com,🪙 交易所
+  - DOMAIN-SUFFIX,bycsi.com,🪙 交易所
+  - DOMAIN-SUFFIX,byapis.com,🪙 交易所
+  - DOMAIN-SUFFIX,byhkbit.com,🪙 交易所
+  - DOMAIN-SUFFIX,b26.io,🪙 交易所
   
   # Coinbase
   - DOMAIN-SUFFIX,coinbase.com,🪙 交易所
   - DOMAIN-SUFFIX,coinbase.co,🪙 交易所
   - DOMAIN-SUFFIX,coinbase.net,🪙 交易所
+  - DOMAIN-SUFFIX,coinbasecloud.net,🪙 交易所
+
+  # Bitget
+  - DOMAIN-SUFFIX,bitget.com,🪙 交易所
+  - DOMAIN-SUFFIX,bitget.net,🪙 交易所
+  - DOMAIN-SUFFIX,bitget.co,🪙 交易所
+  - DOMAIN-SUFFIX,bitkeep.com,🪙 交易所
 
   # ──────── ③ AI 服务：本地精确域名规则（不依赖远程下载）────────
 
