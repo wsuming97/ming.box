@@ -1,49 +1,49 @@
-# 交易所域名规则集 — Quantumult X 原生格式
+# 交易所域名规则集 — Quantumult X 远程列表格式
 # 作者：wsuming97  更新：2026-06-22
 
 # Binance（币安）
-host-suffix, binance.com
-host-suffix, bnappcdn.com
-host-suffix, bnbstatic.com
-host-suffix, binancecnt.com
-host-suffix, binance.charity
-host-suffix, binance.cloud
-host-suffix, binance.co
-host-suffix, binance.info
-host-suffix, binance.me
-host-suffix, binance.net
-host-suffix, binance.org
-host-suffix, binance.vision
-host-suffix, binance.us
+HOST-SUFFIX,binance.com
+HOST-SUFFIX,bnappcdn.com
+HOST-SUFFIX,bnbstatic.com
+HOST-SUFFIX,binancecnt.com
+HOST-SUFFIX,binance.charity
+HOST-SUFFIX,binance.cloud
+HOST-SUFFIX,binance.co
+HOST-SUFFIX,binance.info
+HOST-SUFFIX,binance.me
+HOST-SUFFIX,binance.net
+HOST-SUFFIX,binance.org
+HOST-SUFFIX,binance.vision
+HOST-SUFFIX,binance.us
 
 # OKX（欧易）
-host-suffix, okx.com
-host-suffix, okex.com
-host-suffix, okx-cdn.com
-host-suffix, okx-dns.com
-host-suffix, okex.co
-host-suffix, okex.net
+HOST-SUFFIX,okx.com
+HOST-SUFFIX,okex.com
+HOST-SUFFIX,okx-cdn.com
+HOST-SUFFIX,okx-dns.com
+HOST-SUFFIX,okex.co
+HOST-SUFFIX,okex.net
 
 # Bybit
-host-suffix, bybit.com
-host-suffix, bybit.co
-host-suffix, bybit.net
-host-suffix, byapps.net
-host-suffix, bytick.com
-host-suffix, bybitglobal.com
-host-suffix, bycsi.com
-host-suffix, byapis.com
-host-suffix, byhkbit.com
-host-suffix, b26.io
+HOST-SUFFIX,bybit.com
+HOST-SUFFIX,bybit.co
+HOST-SUFFIX,bybit.net
+HOST-SUFFIX,byapps.net
+HOST-SUFFIX,bytick.com
+HOST-SUFFIX,bybitglobal.com
+HOST-SUFFIX,bycsi.com
+HOST-SUFFIX,byapis.com
+HOST-SUFFIX,byhkbit.com
+HOST-SUFFIX,b26.io
 
 # Coinbase
-host-suffix, coinbase.com
-host-suffix, coinbase.co
-host-suffix, coinbase.net
-host-suffix, coinbasecloud.net
+HOST-SUFFIX,coinbase.com
+HOST-SUFFIX,coinbase.co
+HOST-SUFFIX,coinbase.net
+HOST-SUFFIX,coinbasecloud.net
 
 # Bitget
-host-suffix, bitget.com
-host-suffix, bitget.net
-host-suffix, bitget.co
-host-suffix, bitkeep.com
+HOST-SUFFIX,bitget.com
+HOST-SUFFIX,bitget.net
+HOST-SUFFIX,bitget.co
+HOST-SUFFIX,bitkeep.com
