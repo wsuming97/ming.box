@@ -1,0 +1,51 @@
+# ═══════════════════════════════════════════════════════════════
+# 交易所域名规则集（供 Shadowrocket / Quantumult X / Loon 远程引用）
+# 作者：wsuming97  更新：2026-06-22
+# ═══════════════════════════════════════════════════════════════
+
+# Binance（币安）
+DOMAIN-SUFFIX,binance.com
+DOMAIN-SUFFIX,bnappcdn.com
+DOMAIN-SUFFIX,bnbstatic.com
+DOMAIN-SUFFIX,binancecnt.com
+DOMAIN-SUFFIX,binance.charity
+DOMAIN-SUFFIX,binance.cloud
+DOMAIN-SUFFIX,binance.co
+DOMAIN-SUFFIX,binance.info
+DOMAIN-SUFFIX,binance.me
+DOMAIN-SUFFIX,binance.net
+DOMAIN-SUFFIX,binance.org
+DOMAIN-SUFFIX,binance.vision
+DOMAIN-SUFFIX,binance.us
+
+# OKX（欧易）
+DOMAIN-SUFFIX,okx.com
+DOMAIN-SUFFIX,okex.com
+DOMAIN-SUFFIX,okx-cdn.com
+DOMAIN-SUFFIX,okx-dns.com
+DOMAIN-SUFFIX,okex.co
+DOMAIN-SUFFIX,okex.net
+
+# Bybit
+DOMAIN-SUFFIX,bybit.com
+DOMAIN-SUFFIX,bybit.co
+DOMAIN-SUFFIX,bybit.net
+DOMAIN-SUFFIX,byapps.net
+DOMAIN-SUFFIX,bytick.com
+DOMAIN-SUFFIX,bybitglobal.com
+DOMAIN-SUFFIX,bycsi.com
+DOMAIN-SUFFIX,byapis.com
+DOMAIN-SUFFIX,byhkbit.com
+DOMAIN-SUFFIX,b26.io
+
+# Coinbase
+DOMAIN-SUFFIX,coinbase.com
+DOMAIN-SUFFIX,coinbase.co
+DOMAIN-SUFFIX,coinbase.net
+DOMAIN-SUFFIX,coinbasecloud.net
+
+# Bitget
+DOMAIN-SUFFIX,bitget.com
+DOMAIN-SUFFIX,bitget.net
+DOMAIN-SUFFIX,bitget.co
+DOMAIN-SUFFIX,bitkeep.com
