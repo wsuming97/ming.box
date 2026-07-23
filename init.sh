@@ -3116,12 +3116,20 @@ vps_error() { echo -e "${RED}>>> [ERROR] $1${NC}"; exit 1; }
 
 # === 模块 1：更新与软件 ===
 # 【优化】增加 DEBIAN_FRONTEND=noninteractive 和 --force-confold，防止 dpkg 弹窗卡住脚本
+# 【优化】拆分为两步独立输出，进度更清晰
 func_update() {
-    vps_info "正在高速更新底层系统包目录，并安装必备基础软件..."
     export DEBIAN_FRONTEND=noninteractive
+
+    # 第一步：更新系统软件库
+    vps_info "正在更新系统软件库并升级已安装的软件包..."
     apt update -y && apt upgrade -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
+    vps_ok "系统软件库更新完成，所有已安装包已升级到最新版本！"
+    echo ""
+
+    # 第二步：安装必备基础软件
+    vps_info "正在安装必备基础软件 (sudo/curl/wget/nano/procps)..."
     apt install -y sudo curl wget nano procps
-    vps_ok "所有系统补丁拉取完成！必备软件(curl/wget/nano/sudo)均已存在于系统中。"
+    vps_ok "必备软件全部就位！"
 }
 
 # === 模块 2：时区校正 ===
@@ -3234,28 +3242,17 @@ func_ssh_secure() {
     wget -qO /tmp/key.sh https://raw.githubusercontent.com/yuju520/Script/main/key.sh && chmod +x /tmp/key.sh && bash /tmp/key.sh; rm -f /tmp/key.sh
 }
 
-# === 模块 6：大佬级网络调优与BBRx ===
-# 【优化】增加交互式重启询问
+# === 模块 6：内核/网络深度调优（jerry048/Tune） ===
+# 【修复】jerry048/Tune 新版已移除 -x (BBRx) 选项，-t 已包含 BBR + sysctl + 网卡调优
+# 调优项：BBR 拥塞控制、FQ 队列、TCP 缓冲区、网卡环形缓冲区、offload 等，sysctl 即时生效
 func_tune_bbr() {
-    vps_info "远程劫持 jerry048/Tune 中的超级系统级底层并发参数进行调优 (-t)..."
+    vps_info "远程调用 jerry048/Tune 进行系统级内核与网络深度调优 (-t)..."
+    vps_info "包含：BBR 拥塞控制 / sysctl 参数优化 / 网卡环形缓冲区 / TCP 缓冲区调优"
     bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -t
-    vps_ok "队列深度、TCP重传、缓冲区优化文件全部注入！"
+    vps_ok "内核/网络调优全部注入完成！BBR + FQ + TCP 缓冲区 + 网卡参数已即时生效。"
     echo ""
-    vps_info "正在强制推平旧版堵塞控制，将网络架构提升为最强算法 BBRx (-x)..."
-    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Tune/main/tune.sh) -x
-    vps_ok "新内核替换安装完成！"
-    echo ""
-    echo -e "${YELLOW}⚠️ 此时内核虽然写入，但并没有装载成功。你必须重启 (Reboot) 才能生效！${NC}"
-    echo ""
-    read -p "$(echo -e ${GREEN}是否立即重启 VPS 使 BBRx 生效？${NC} [Y/n]: )" reboot_choice
-    reboot_choice="${reboot_choice:-Y}"
-    if [[ "$reboot_choice" == "Y" || "$reboot_choice" == "y" ]]; then
-        echo -e "${RED}主机即将重启，BBRx 将在重启后正式接管网络引擎！再见！${NC}"
-        sleep 2
-        reboot
-    else
-        echo -e "${YELLOW}已跳过重启。请记得稍后手动执行: reboot${NC}"
-    fi
+    echo -e "${GREEN}💡 调优参数已通过 sysctl 即时生效，无需重启。${NC}"
+    echo -e "${YELLOW}   部分系统级限制（如 ulimit）需要重新登录 SSH 会话后才能完全生效。${NC}"
 }
 
 # ══════════════════════════════════════════════════════════
@@ -3298,7 +3295,7 @@ show_menu() {
     echo -e "  ${YELLOW}3.${NC} 💾 交互式部署虚拟内存池 SWAP (加多少随时定/支持删除)"
     echo -e "  ${YELLOW}4.${NC} 🔑 修改缺省 22 端口为 55520 并替换为高级密钥锁 (yuju版)"
     echo -e "  ${YELLOW}5.${NC} 🛡️ 焊死防爆大门 (Fail2ban SSH封锁策略，锁定1天)"
-    echo -e "  ${YELLOW}6.${NC} ⚡ 单挑装网神功：黑科技内核调优与 BBRx 加速 (jerry048版)"
+    echo -e "  ${YELLOW}6.${NC} ⚡ 单挑装网神功：内核/网络深度调优 (jerry048/Tune)"
     echo -e "  ${YELLOW}q.${NC} 暂且不用，我回去了"
     line
     echo ""
@@ -3330,10 +3327,17 @@ vps_menu_loop() {
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
                 echo -e "${GREEN}${BOLD}     洗礼完成，一台完美、流畅、强悍的钢铁机甲已装填完毕！     ${NC}"
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
-                read -p "为给最后的极客版 BBRx 和密钥体系锁死打药，接下来需要近两分钟的关机重启，长按回车确认断尾..."
-                echo -e "${RED}主机即将坠入黑暗并重新自启，再回头就是全新的传说！再见！${NC}"
-                sleep 2
-                reboot
+                echo ""
+                echo -e "${GREEN}所有配置已生效。如果修改了 SSH 端口/密钥，建议重启以确保所有服务状态刷新。${NC}"
+                read -p "$(echo -e ${GREEN}是否立即重启 VPS？${NC} [Y/n]: )" reboot_choice
+                reboot_choice="${reboot_choice:-Y}"
+                if [[ "$reboot_choice" == "Y" || "$reboot_choice" == "y" ]]; then
+                    echo -e "${RED}主机即将重启，再回头就是全新的传说！再见！${NC}"
+                    sleep 2
+                    reboot
+                else
+                    echo -e "${YELLOW}已跳过重启。所有调优参数已即时生效。${NC}"
+                fi
                 return 0
                 ;;
             1) echo ""; func_update; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
@@ -3400,4 +3404,4 @@ while true; do
     esac
 done
 
-# ── 构建时间: 2026-05-17 01:19:53 UTC ──
+# ── 构建时间: 2026-07-23 05:48:46 UTC ──

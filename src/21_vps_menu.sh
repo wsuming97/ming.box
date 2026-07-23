@@ -34,7 +34,7 @@ show_menu() {
     echo -e "  ${YELLOW}3.${NC} 💾 交互式部署虚拟内存池 SWAP (加多少随时定/支持删除)"
     echo -e "  ${YELLOW}4.${NC} 🔑 修改缺省 22 端口为 55520 并替换为高级密钥锁 (yuju版)"
     echo -e "  ${YELLOW}5.${NC} 🛡️ 焊死防爆大门 (Fail2ban SSH封锁策略，锁定1天)"
-    echo -e "  ${YELLOW}6.${NC} ⚡ 单挑装网神功：黑科技内核调优与 BBRx 加速 (jerry048版)"
+    echo -e "  ${YELLOW}6.${NC} ⚡ 单挑装网神功：内核/网络深度调优 (jerry048/Tune)"
     echo -e "  ${YELLOW}q.${NC} 暂且不用，我回去了"
     line
     echo ""
@@ -66,10 +66,17 @@ vps_menu_loop() {
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
                 echo -e "${GREEN}${BOLD}     洗礼完成，一台完美、流畅、强悍的钢铁机甲已装填完毕！     ${NC}"
                 echo -e "${GREEN}${BOLD}=======================================================${NC}"
-                read -p "为给最后的极客版 BBRx 和密钥体系锁死打药，接下来需要近两分钟的关机重启，长按回车确认断尾..."
-                echo -e "${RED}主机即将坠入黑暗并重新自启，再回头就是全新的传说！再见！${NC}"
-                sleep 2
-                reboot
+                echo ""
+                echo -e "${GREEN}所有配置已生效。如果修改了 SSH 端口/密钥，建议重启以确保所有服务状态刷新。${NC}"
+                read -p "$(echo -e ${GREEN}是否立即重启 VPS？${NC} [Y/n]: )" reboot_choice
+                reboot_choice="${reboot_choice:-Y}"
+                if [[ "$reboot_choice" == "Y" || "$reboot_choice" == "y" ]]; then
+                    echo -e "${RED}主机即将重启，再回头就是全新的传说！再见！${NC}"
+                    sleep 2
+                    reboot
+                else
+                    echo -e "${YELLOW}已跳过重启。所有调优参数已即时生效。${NC}"
+                fi
                 return 0
                 ;;
             1) echo ""; func_update; read -p "$(echo -e ${CYAN}按回车返回重装总界面！${NC})";;
