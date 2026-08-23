@@ -1,37 +1,51 @@
-HOST-SUFFIX,binance.com
-HOST-SUFFIX,bnappcdn.com
-HOST-SUFFIX,bnbstatic.com
-HOST-SUFFIX,binancecnt.com
-HOST-SUFFIX,binance.charity
-HOST-SUFFIX,binance.cloud
-HOST-SUFFIX,binance.co
-HOST-SUFFIX,binance.info
-HOST-SUFFIX,binance.me
-HOST-SUFFIX,binance.net
-HOST-SUFFIX,binance.org
-HOST-SUFFIX,binance.vision
-HOST-SUFFIX,binance.us
-HOST-SUFFIX,okx.com
-HOST-SUFFIX,okex.com
-HOST-SUFFIX,okx-cdn.com
-HOST-SUFFIX,okx-dns.com
-HOST-SUFFIX,okex.co
-HOST-SUFFIX,okex.net
-HOST-SUFFIX,bybit.com
-HOST-SUFFIX,bybit.co
-HOST-SUFFIX,bybit.net
-HOST-SUFFIX,byapps.net
-HOST-SUFFIX,bytick.com
-HOST-SUFFIX,bybitglobal.com
-HOST-SUFFIX,bycsi.com
-HOST-SUFFIX,byapis.com
-HOST-SUFFIX,byhkbit.com
-HOST-SUFFIX,b26.io
-HOST-SUFFIX,coinbase.com
-HOST-SUFFIX,coinbase.co
-HOST-SUFFIX,coinbase.net
-HOST-SUFFIX,coinbasecloud.net
-HOST-SUFFIX,bitget.com
-HOST-SUFFIX,bitget.net
-HOST-SUFFIX,bitget.co
-HOST-SUFFIX,bitkeep.com
+# ═══════════════════════════════════════════════════════════════
+# Quantumult X 交易所域名规则集
+# 格式规范：TYPE,PATTERN,POLICY
+# ═══════════════════════════════════════════════════════════════
+
+# Binance（币安）
+HOST-SUFFIX,binance.com,交易所
+HOST-SUFFIX,bnappcdn.com,交易所
+HOST-SUFFIX,bnbstatic.com,交易所
+HOST-SUFFIX,binancecnt.com,交易所
+HOST-SUFFIX,binance.charity,交易所
+HOST-SUFFIX,binance.cloud,交易所
+HOST-SUFFIX,binance.co,交易所
+HOST-SUFFIX,binance.info,交易所
+HOST-SUFFIX,binance.me,交易所
+HOST-SUFFIX,binance.net,交易所
+HOST-SUFFIX,binance.org,交易所
+HOST-SUFFIX,binance.vision,交易所
+HOST-SUFFIX,binance.us,交易所
+
+# OKX（欧易）
+HOST-SUFFIX,okx.com,交易所
+HOST-SUFFIX,okex.com,交易所
+HOST-SUFFIX,okx-cdn.com,交易所
+HOST-SUFFIX,okx-dns.com,交易所
+HOST-SUFFIX,okex.co,交易所
+HOST-SUFFIX,okex.net,交易所
+
+# Bybit
+HOST-SUFFIX,bybit.com,交易所
+HOST-SUFFIX,bybit.co,交易所
+HOST-SUFFIX,bybit.net,交易所
+HOST-SUFFIX,byapps.net,交易所
+HOST-SUFFIX,bytick.com,交易所
+HOST-SUFFIX,bybitglobal.com,交易所
+HOST-SUFFIX,bycsi.com,交易所
+HOST-SUFFIX,byapis.com,交易所
+HOST-SUFFIX,byhkbit.com,交易所
+HOST-SUFFIX,b26.io,交易所
+
+# Coinbase
+HOST-SUFFIX,coinbase.com,交易所
+HOST-SUFFIX,coinbase.co,交易所
+HOST-SUFFIX,coinbase.net,交易所
+HOST-SUFFIX,coinbasecloud.net,交易所
+
+# Bitget
+HOST-SUFFIX,bitget.com,交易所
+HOST-SUFFIX,bitget.net,交易所
+HOST-SUFFIX,bitget.co,交易所
+HOST-SUFFIX,bitkeep.com,交易所
