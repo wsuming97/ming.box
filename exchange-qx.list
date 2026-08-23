@@ -1,9 +1,41 @@
 # ═══════════════════════════════════════════════════════════════
-# Quantumult X 交易所域名规则集
+# Quantumult X 交易所域名规则集（含防 IP 探测）
 # 格式规范：TYPE,PATTERN,POLICY
 # ═══════════════════════════════════════════════════════════════
 
-# Binance（币安）
+# ====== 关键字全匹配（防止新型动态域名漏网）======
+HOST-KEYWORD,bybit,交易所
+HOST-KEYWORD,byapps,交易所
+HOST-KEYWORD,bytick,交易所
+HOST-KEYWORD,bycsi,交易所
+HOST-KEYWORD,byapis,交易所
+HOST-KEYWORD,binance,交易所
+HOST-KEYWORD,okx,交易所
+HOST-KEYWORD,okex,交易所
+
+# ====== Bybit ======
+HOST-SUFFIX,bybit.com,交易所
+HOST-SUFFIX,bybit.co,交易所
+HOST-SUFFIX,bybit.net,交易所
+HOST-SUFFIX,bybit.org,交易所
+HOST-SUFFIX,byapps.net,交易所
+HOST-SUFFIX,bytick.com,交易所
+HOST-SUFFIX,bybitglobal.com,交易所
+HOST-SUFFIX,bycsi.com,交易所
+HOST-SUFFIX,byapis.com,交易所
+HOST-SUFFIX,byhkbit.com,交易所
+HOST-SUFFIX,b26.io,交易所
+HOST-SUFFIX,byd3c3.com,交易所
+HOST-SUFFIX,byabcde.com,交易所
+HOST-SUFFIX,bybit-asia.com,交易所
+HOST-SUFFIX,bybit-global.com,交易所
+HOST-SUFFIX,bybit.im,交易所
+HOST-SUFFIX,bybit.biz,交易所
+HOST-SUFFIX,bybit-japan.com,交易所
+HOST-SUFFIX,bybit.exchange,交易所
+HOST-SUFFIX,bybit-prod.com,交易所
+
+# ====== Binance（币安）======
 HOST-SUFFIX,binance.com,交易所
 HOST-SUFFIX,bnappcdn.com,交易所
 HOST-SUFFIX,bnbstatic.com,交易所
@@ -18,7 +50,7 @@ HOST-SUFFIX,binance.org,交易所
 HOST-SUFFIX,binance.vision,交易所
 HOST-SUFFIX,binance.us,交易所
 
-# OKX（欧易）
+# ====== OKX（欧易）======
 HOST-SUFFIX,okx.com,交易所
 HOST-SUFFIX,okex.com,交易所
 HOST-SUFFIX,okx-cdn.com,交易所
@@ -26,26 +58,26 @@ HOST-SUFFIX,okx-dns.com,交易所
 HOST-SUFFIX,okex.co,交易所
 HOST-SUFFIX,okex.net,交易所
 
-# Bybit
-HOST-SUFFIX,bybit.com,交易所
-HOST-SUFFIX,bybit.co,交易所
-HOST-SUFFIX,bybit.net,交易所
-HOST-SUFFIX,byapps.net,交易所
-HOST-SUFFIX,bytick.com,交易所
-HOST-SUFFIX,bybitglobal.com,交易所
-HOST-SUFFIX,bycsi.com,交易所
-HOST-SUFFIX,byapis.com,交易所
-HOST-SUFFIX,byhkbit.com,交易所
-HOST-SUFFIX,b26.io,交易所
-
-# Coinbase
+# ====== Coinbase ======
 HOST-SUFFIX,coinbase.com,交易所
 HOST-SUFFIX,coinbase.co,交易所
 HOST-SUFFIX,coinbase.net,交易所
 HOST-SUFFIX,coinbasecloud.net,交易所
 
-# Bitget
+# ====== Bitget ======
 HOST-SUFFIX,bitget.com,交易所
 HOST-SUFFIX,bitget.net,交易所
 HOST-SUFFIX,bitget.co,交易所
 HOST-SUFFIX,bitkeep.com,交易所
+
+# ====== IP 探测服务防漏（防止 App 获取真实直连 IP）======
+HOST-SUFFIX,ipify.org,交易所
+HOST-SUFFIX,ip-api.com,交易所
+HOST-SUFFIX,ip.sb,交易所
+HOST-SUFFIX,ipinfo.io,交易所
+HOST-SUFFIX,icanhazip.com,交易所
+HOST-SUFFIX,ifconfig.co,交易所
+HOST-SUFFIX,ifconfig.me,交易所
+HOST-SUFFIX,myip.la,交易所
+HOST-SUFFIX,ident.me,交易所
+HOST-SUFFIX,ipapi.co,交易所

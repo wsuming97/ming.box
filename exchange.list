@@ -1,9 +1,40 @@
 # ═══════════════════════════════════════════════════════════════
-# 交易所域名规则集（供 Shadowrocket / Quantumult X / Loon 远程引用）
-# 作者：wsuming97  更新：2026-06-22
+# 交易所域名规则集（供 Shadowrocket / Loon 远程引用）
 # ═══════════════════════════════════════════════════════════════
 
-# Binance（币安）
+# ====== 关键字全匹配 ======
+DOMAIN-KEYWORD,bybit
+DOMAIN-KEYWORD,byapps
+DOMAIN-KEYWORD,bytick
+DOMAIN-KEYWORD,bycsi
+DOMAIN-KEYWORD,byapis
+DOMAIN-KEYWORD,binance
+DOMAIN-KEYWORD,okx
+DOMAIN-KEYWORD,okex
+
+# ====== Bybit ======
+DOMAIN-SUFFIX,bybit.com
+DOMAIN-SUFFIX,bybit.co
+DOMAIN-SUFFIX,bybit.net
+DOMAIN-SUFFIX,bybit.org
+DOMAIN-SUFFIX,byapps.net
+DOMAIN-SUFFIX,bytick.com
+DOMAIN-SUFFIX,bybitglobal.com
+DOMAIN-SUFFIX,bycsi.com
+DOMAIN-SUFFIX,byapis.com
+DOMAIN-SUFFIX,byhkbit.com
+DOMAIN-SUFFIX,b26.io
+DOMAIN-SUFFIX,byd3c3.com
+DOMAIN-SUFFIX,byabcde.com
+DOMAIN-SUFFIX,bybit-asia.com
+DOMAIN-SUFFIX,bybit-global.com
+DOMAIN-SUFFIX,bybit.im
+DOMAIN-SUFFIX,bybit.biz
+DOMAIN-SUFFIX,bybit-japan.com
+DOMAIN-SUFFIX,bybit.exchange
+DOMAIN-SUFFIX,bybit-prod.com
+
+# ====== Binance（币安）======
 DOMAIN-SUFFIX,binance.com
 DOMAIN-SUFFIX,bnappcdn.com
 DOMAIN-SUFFIX,bnbstatic.com
@@ -18,7 +49,7 @@ DOMAIN-SUFFIX,binance.org
 DOMAIN-SUFFIX,binance.vision
 DOMAIN-SUFFIX,binance.us
 
-# OKX（欧易）
+# ====== OKX（欧易）======
 DOMAIN-SUFFIX,okx.com
 DOMAIN-SUFFIX,okex.com
 DOMAIN-SUFFIX,okx-cdn.com
@@ -26,26 +57,26 @@ DOMAIN-SUFFIX,okx-dns.com
 DOMAIN-SUFFIX,okex.co
 DOMAIN-SUFFIX,okex.net
 
-# Bybit
-DOMAIN-SUFFIX,bybit.com
-DOMAIN-SUFFIX,bybit.co
-DOMAIN-SUFFIX,bybit.net
-DOMAIN-SUFFIX,byapps.net
-DOMAIN-SUFFIX,bytick.com
-DOMAIN-SUFFIX,bybitglobal.com
-DOMAIN-SUFFIX,bycsi.com
-DOMAIN-SUFFIX,byapis.com
-DOMAIN-SUFFIX,byhkbit.com
-DOMAIN-SUFFIX,b26.io
-
-# Coinbase
+# ====== Coinbase ======
 DOMAIN-SUFFIX,coinbase.com
 DOMAIN-SUFFIX,coinbase.co
 DOMAIN-SUFFIX,coinbase.net
 DOMAIN-SUFFIX,coinbasecloud.net
 
-# Bitget
+# ====== Bitget ======
 DOMAIN-SUFFIX,bitget.com
 DOMAIN-SUFFIX,bitget.net
 DOMAIN-SUFFIX,bitget.co
 DOMAIN-SUFFIX,bitkeep.com
+
+# ====== IP 探测服务防漏 ======
+DOMAIN-SUFFIX,ipify.org
+DOMAIN-SUFFIX,ip-api.com
+DOMAIN-SUFFIX,ip.sb
+DOMAIN-SUFFIX,ipinfo.io
+DOMAIN-SUFFIX,icanhazip.com
+DOMAIN-SUFFIX,ifconfig.co
+DOMAIN-SUFFIX,ifconfig.me
+DOMAIN-SUFFIX,myip.la
+DOMAIN-SUFFIX,ident.me
+DOMAIN-SUFFIX,ipapi.co
